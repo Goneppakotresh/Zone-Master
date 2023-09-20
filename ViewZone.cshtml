@@ -1,0 +1,381 @@
+﻿@model ZoneMaster.Models.Zone
+@{
+    ViewData["Title"] = "ViewZone";
+}
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .zone {
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    @using (Html.BeginForm())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="container-fluid">
+                    <div class="table-responsive">
+                        <h3>Zone</h3>
+                        <input type="button" id="btnNew" value="New" class="btn btn-primary zone" />
+                        <div class="col-md-12">
+                            <table id="grdWorkFlowView" cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; width: 100% !important" class="table dispaly">
+                                <thead>
+                                    <tr style="text-align: center;">
+                                        <th style="text-align:center">Serial No</th>
+                                        <th style="text-align:center">Country</th>
+                                        <th style="text-align: center">zoneid</th>
+                                        <th style="text-align: center">State Name</th>
+                                        <th style="text-align: center">Zone Name</th>
+                                        <th style="text-align:center">Remarks</th>
+                                        <th style="text-align:center">Edit</th>
+                                        <th style="text-align:center">View</th>
+                                        <th style="text-align:center">Active</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="modalbox" class="modal fade" id="licenseModal" tabindex="-1" role="dialog" aria-labelledby="licenseModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="container-fluid">
+                        <div class=" modal-header">
+                            <h4 class="modal-title">Zone</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                        </div>
+                        @Html.HiddenFor(m => m.countryid, new { @class = "form-control", @id = "hdnContryId" })
+                        @Html.HiddenFor(m => m.zoneid, new { @class = "form-control", @id = "hdnZoneId" })
+                        @Html.HiddenFor(m => m.stateid, new { @class = "form-control", @id = "hdnStateId" })
+                        <div class="form-group">
+                            <div class="col-md-8">
+                                <label>Country Name<span style="color:red">*</span></label>
+                                @Html.DropDownListFor(m => m.countryname, Model.lstCountry, new { @class = "form-control chosen-select", id = "ddlcountry" })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-8">
+                                <label>State Name<span style="color:red">*</span></label>
+                                @Html.DropDownListFor(m => m.statename, Model.lststate,new { @class = "dropdown form-control", id = "ddlstate" })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-8">
+                                <label>Zone Name<span style="color:red">*</span></label>
+                                @Html.TextBoxFor(model => model.zonename, new { @class = "form-control clsZone", id = "txtZone",oninput="this.value = this.value.replace(/[^A-Za-z]/g, ''); if (this.value.length > 50) this.value = this.value.slice(0, 50);"   })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-8">
+                                <label>Remarks <span style="color:red">*</span></label>
+                                @Html.EditorFor(model => model.remarks, new { htmlAttributes = new { @class = "form-control",id="txtRemarks", oninput="if (this.value.length > 255) this.value = this.value.slice(0, 255);" } })
+                            </div>
+                        </div>
+                        <div class="form-group" id="btnspart">
+                            <div class="col-md-offset-2 col-md-8">
+                                <input type="submit" id="btnsubmit" value="Submit" class="btn btn-success" />
+                                <input type="reset" id="btnreset" value="Reset" class="btn btn-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</body>
+</html>
+@if (Model.responseCode == 1)
+{
+    <script type="text/javascript">
+        Swal.fire({
+            text: "Zone Added Successfully",
+            type: "success"
+        }).then(function () {
+            window.location.href = "../Zone/ViewZone"
+        });
+    </script>
+}
+@if (Model.responseCode == 2)
+{
+    <script type="text/javascript">
+        Swal.fire({
+            text: "Zone Updated Successfully",
+            type: "success"
+        }).then(function () {
+            window.location.href = "../Zone/ViewZone"
+        });
+    </script>
+}
+@if (Model.responseCode == 3)
+{
+    <script type="text/javascript">
+        Swal.fire({
+            text: "Zone Alredy Exist",
+            type: "error"
+        }).then(function () {
+            window.location.href = "../Zone/ViewZone"
+        });
+    </script>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".close").click(function () {
+            $("#modalbox").modal("hide");
+        });
+        $("#btnsubmit").click(function () {
+            var Country = $('#ddlcountry').val();
+            var State = $('#ddlstate').val();
+            var Zone = $('#txtZone').val();
+            var Remarks = $('#txtRemarks').val();
+            if (Country === "" || Country === "0" || Country === "undefined") {
+                swal.fire("Please Select Country");
+                return false;
+            }
+            else if (State === "" || State === "0" || State === "undefined") {
+                swal.fire("Please Select State");
+                return false;
+            }
+            else if (Zone === " " || Zone === null || Zone === "" || Zone.trim() === "") {
+                swal.fire("Please Enter Zone");
+                return false;
+            } else if (/\d/.test(Zone)) {
+                swal.fire("Zone cannot contain numbers");
+                return false;
+            } else if (/^\s|\s$|\s\s/.test(Zone)) {
+                swal.fire("Zone cannot start, end, or contain consecutive spaces");
+                return false;
+            }
+            else if (Remarks === null || Remarks.trim() === "") {
+                swal.fire("Please Enter Remarks");
+                return false;
+            }
+            else {
+                return true;
+            }
+        });
+        $("#ddlcountry").change(function () {
+            var id = $("#ddlcountry").val();
+            $.ajax({
+                type: "POST",
+                url: "../Zone/GetState",
+                data: { id: id },
+                success: function (data) {
+                    debugger;
+                    $("#ddlstate").html('');
+                    var s = '';
+                    var len = data.length;
+                    for (var i = 0; i < len; i++) {
+                        s += "<option value='" + data[i]["value"] + "'>" + data[i]["text"] + "</option>";
+                    }
+                    $('#ddlstate').html(s).trigger("chosen:updated");
+                },
+                error: function (error) {
+                    alert('error; ' + eval(error));
+                }
+            });
+        });
+        $("#btnNew").click(function () {
+            $("#modalbox").modal("show");
+            $('#ddlstate').val("");
+            $('#ddlcountry').val(0);
+            $('#txtRemarks').val("");
+            $('#txtZone').val("");
+            $('#btnsubmit').val('Save');
+            $("#ddlcountry").attr("disabled", false);
+            $("#ddlstate").attr("disabled", false);
+        });
+        $('#grdWorkFlowView').DataTable({
+            "ajax": {
+                "url": "/Zone/GetZoneDetail",
+                "type": "POST",
+                "datatype": "json",
+            },
+            "columns": [
+                { "data": null, "defaultContent": "", "orderable": false, "class": "dt-center" }, // Serial Number column
+                { "data": "countryname", "class": "dt-center" },
+                { "data": "zoneid", "autoWidth": true, "visible": false, "class": "dt-center" },
+                { "data": "statename", "autoWidth": true, "class": "dt-center" },
+                { "data": "zonename", "autoWidth": true, "class": "dt-center" },
+                { "data": "remarks", "autoWidth": true, "class": "dt-center" },
+                {
+                    "data": "zoneid", "autoWidth": true, "class": "dt-center", "sortable": false, "render": function (data, type, row) {
+                        return '<a style="color: blue;" href="javascript:editBtn(\'' + row.stateid + '\',\'' + row.remarks + '\',\'' + row.zonename + '\',\'' + row.countryid + '\',\'' + row.zoneid + '\')" title="Edit"><i class="fa fa-edit" style="font-size: 24px"></i></a>';
+                    }
+                },
+                {
+                    "data": "zoneid", "autoWidth": true, "class": "dt-center", "sortable": false, "render": function (data, type, row) {
+                        return '<a style="color: blue;" href="javascript:viewBtn(\'' + row.stateid + '\',\'' + row.remarks + '\',\'' + row.zonename + '\',\'' + row.countryid + '\',\'' + row.zoneid + '\')" title="View"><i class="fa fa-eye" style="font-size: 24px"></i></a>';
+                    }
+                },
+                {
+                    "data": "isactive", "autoWidth": true, "class": "dt-center", "sortable": false, "render": function (data, type, row) {
+                        if (data === 1) {
+                            return '<a style="color: green;" href="javascript:activeDeactive(\'' + row.zoneid + '\',\'1\' )" title="Active"><i class="fa fa-circle"></a>';
+                        }
+                        else {
+                            return '<a style="color: red;"href="javascript:activeDeactive(\'' + row.zoneid + '\',\'0\' )" title="InActive"><i class="fa fa-circle"></a>';
+                        }
+                    }
+                },
+            ],
+            "columnDefs": [
+                {
+                    "targets": 0, // Target the first column (Serial Number)
+                    "data": null,
+                    "render": function (data, type, row, meta) {
+                        // Use meta.row to get the current row index and add 1 to start from 1
+                        return meta.row + 1;
+                    }
+                }
+            ]
+        });
+    });
+    function viewBtn(stateid, remarks, zonename, countryid, zoneid) {
+        var zoneid = zoneid;
+        $('#hdnStateId').val(stateid);
+        $('#hdnContryId').val(countryid);
+        $('#hdnZoneId').val(zoneid);
+        $('#txtRemarks').val(remarks);
+        var zonename = zonename;
+        var id = stateid;
+        $.ajax({
+            type: "POST",
+            url: "../Zone/GetStateName",
+            data: { id: id },
+            success: function (data) {
+                $("#ddlstate").html('')
+                var s = '';
+                var len = data.length;
+                for (var i = 0; i < len; i++) {
+                    s += "<option value='" + data[i]["value"] + "'>" + data[i]["text"] + "</option>";
+                }
+                $('#ddlstate').html(s).trigger("chosen:updated");
+            },
+            error: function (xhr, status, error) {
+                alert("While your processing getting error...!!");
+            }
+        });
+        $('#ddlcountry').val(countryid);
+        $('#txtRemarks').val(remarks);
+        $('#txtZone').val(zonename);
+        $('#ddlstate').val(stateid).trigger("chosen:updated");
+        $("#ddlcountry").attr("disabled", true);
+        $("#ddlstate").attr("disabled", true);
+        $("#txtZone").attr("disabled", true);
+        $("#txtRemarks").attr("disabled", true);
+        $('#btnsubmit').hide();
+        $('#btnreset').hide();
+        $("#modalbox").modal("show");
+    }
+    function editBtn(stateid, remarks, zonename, countryid, zoneid) {//
+        debugger;
+        var zoneid = zoneid;
+        $('#hdnStateId').val(stateid);
+        $('#hdnContryId').val(countryid);
+        $('#hdnZoneId').val(zoneid);
+        $('#txtRemarks').val(remarks);
+        var zonename = zonename;
+        var id = stateid;
+        $.ajax({
+            type: "POST",
+            url: "../Zone/GetStateName",
+            data: { id: id },
+            success: function (data) {
+                $("#ddlstate").html('')
+                var s = '';
+                var len = data.length;
+                for (var i = 0; i < len; i++) {
+                    s += "<option value='" + data[i]["value"] + "'>" + data[i]["text"] + "</option>";
+                }
+                $('#ddlstate').html(s).trigger("chosen:updated");
+            },
+            error: function (xhr, status, error) {
+                alert("While your processing getting error...!!");
+            }
+        });
+        $('#ddlcountry').val(countryid);
+        $('#txtRemarks').val(remarks);
+        $('#txtZone').val(zonename);
+        $('#ddlstate').val(stateid).trigger("chosen:updated");
+        $("#txtRemarks").attr("disabled", false);
+        $("#txtZone").attr("disabled", false);
+        $("#ddlcountry").attr("disabled", true);
+        $("#ddlstate").attr("disabled", true);
+        $('#btnsubmit').val('Update');
+        $('#btnreset').show();
+        $('#btnsubmit').show();
+        Swal.fire({
+            title: 'Are You Sure You Want to Update?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                debugger;
+                $("#modalbox").modal("show");
+            } else {
+                return false;
+            }
+        });
+    }
+    function activeDeactive(zoneid,flag) {
+        var Zone = zoneid;
+        var flag = flag;
+        if (flag == 1) {
+            Swal.fire({
+                title: 'Are You Sure You Want to Deactivate',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (result.isConfirmed) {                   
+                    $.ajax({
+                        type: "POST",
+                        url: "../Zone/ActiveDeactive",
+                        data: { zid: Zone, flag: flag },
+                        success: function (data) {
+                            window.location.href = "../Zone/ViewZone";
+                        },
+                        error: function (xhr, status, error) {
+                            alert("While your processing getting error...!!");
+                        }
+                    });
+                } else {
+                    return false;
+                }
+            });
+        }
+        if (flag != 1) {
+            Swal.fire({
+                title: 'Are You Sure You Want to Activate',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "../Zone/ActiveDeactive",
+                        data: { zid: Zone, flag: flag },
+                        success: function (data) {
+                            window.location.href = "../Zone/ViewZone";
+                        },
+                        error: function (xhr, status, error) {
+                            alert("While your processing getting error...!!");
+                        }
+                    });
+                } else {
+                    return false;
+                }
+            });
+        }       
+    }
+</script>
