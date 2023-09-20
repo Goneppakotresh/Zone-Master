@@ -1,0 +1,117 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Data;
+using ZoneMaster.Models;
+namespace ZoneMaster.Controllers
+{
+    public class ZoneController : Controller
+    {
+        /// <summary>
+        /// Created By Shubham Kumar
+        /// on:-16-09-23
+        /// action method 
+        /// </summary>
+        public ActionResult ViewZone()
+        {
+            Zone objProductDetails = new Zone();
+            try
+            {
+              objProductDetails.GetCountryList();
+                return View(objProductDetails);
+            }catch (Exception ex)
+            {
+                objProductDetails.responseCode = -1;
+                return View(objProductDetails);
+            }          
+        }
+        /// <summary>
+        /// Created By Shubham Kumar
+        /// on:-16-09-23
+        /// </summary>
+        [HttpPost]
+        public ActionResult ViewZone(Zone objZoneDtails)
+            {
+            try
+            {
+                objZoneDtails = objZoneDtails.SaveZoneDetails(objZoneDtails);
+                return View(objZoneDtails);
+            }
+           catch (Exception ex)
+            {
+                objZoneDtails.responseCode = -1;
+                return View(objZoneDtails);
+            }          
+        }
+        /// <summary>
+        /// Created By Shubham Kumar
+        /// on:-16-09-23
+        /// </summary>
+        /// <returns></returns>
+        public JsonResult GetZoneDetail()
+        {
+            Zone objProductDetails = new Zone();
+            try
+            {
+                DataTable dtProductDetails = new DataTable();
+                objProductDetails.ZoneDataList = objProductDetails.getZoneDataTable();
+                return Json(new { data = objProductDetails.ZoneDataList });
+            }
+           catch(Exception ex)
+            {
+                objProductDetails.responseCode= -1;
+                return Json(new { data = objProductDetails.responseCode });
+            }
+        }
+        /// <summary>
+        /// Created By Shubham Kumar
+        /// on:-16-09-23
+        /// </summary>
+        public ActionResult GetState(string id)
+        {
+            Zone objZone = new Zone();
+            try
+            {
+                int cId = Convert.ToInt32(id);
+                objZone.lststate = objZone.GetstateList(cId);
+                return Json(objZone.lststate);
+            }catch (Exception ex)
+            {
+                objZone.responseCode= -1;
+                return Json(objZone.responseCode);
+            }           
+        }
+        /// <summary>
+        /// Created By Shubham Kumar
+        /// on:-16-09-23
+        /// </summary>
+        public ActionResult GetStateName(string id)
+        {
+            Zone objZone = new Zone();
+            try
+            {
+                int cId = Convert.ToInt32(id);
+                objZone.statedropdownlist = objZone.GetStateById(cId);
+                return Json(objZone.statedropdownlist);
+            }catch(Exception ex)
+            {
+                objZone.responseCode= -1;
+                return Json(objZone.responseCode);
+            }          
+        }
+        public ActionResult ActiveDeactive(string zid,string flag)
+        {
+            Zone objZone = new Zone();
+            try
+            {
+                objZone.Flag =flag;
+                objZone.zoneid = Convert.ToInt32(zid);
+                objZone.SaveZoneDetails(objZone);
+                return Json(objZone.statedropdownlist);
+            }
+            catch (Exception ex)
+            {
+                objZone.responseCode = -1;
+                return Json(objZone.responseCode);
+            }
+        }
+    }
+}
