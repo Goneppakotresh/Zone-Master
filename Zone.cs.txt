@@ -1,0 +1,237 @@
+﻿using IIITS.JUNCTIONDB.DAL;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Oracle.ManagedDataAccess.Client;
+using System.Data;
+namespace ZoneMaster.Models
+{
+    public class Zone
+    {
+        #region Variable
+        public int countryid { set; get; }
+        public int stateid { set; get; }
+        public int zoneid { set; get; }
+        public string? countryname { set; get; }
+        public string? statename { set; get; }
+        public string? zonename { set; get; }
+        public int responseCode { get; set; }
+        public string? remarks { set; get; }
+        public int isactive { get; set; }
+        public string Flag { get; set; }
+        #endregion
+
+        #region List
+        public List<SelectListItem> lstCountry = new List<SelectListItem>();
+        public List<SelectListItem> lststate = new List<SelectListItem>();
+        public List<SelectListItem> statedropdownlist = new List<SelectListItem>();
+        public List<Zone> ZoneDataList = new List<Zone>();
+        #endregion
+        /// <summary>
+        ///  Created By Shubham on 18/09/2023
+        /// SAve To Data Base
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public Zone SaveZoneDetails(Zone obj)
+        {
+            try
+            {
+                CustOledbConnection objcon = new CustOledbConnection("IIITS", "C:\\Users\\shubham.kumar\\source\\repos\\ZoneMasterProject\\ZoneMasterProject\\constring.json");
+                objcon.proc_name = "ZONE_MASTER_SAVE_UPDATE";
+                objcon.dtInputParameter.Rows.Add("IN_ZONE_ID", obj.zoneid, "INPUT");
+                objcon.dtInputParameter.Rows.Add("IN_COUNTRY_ID", Convert.ToInt32(obj.countryname), "INPUT");
+                objcon.dtInputParameter.Rows.Add("IN_state_ID", Convert.ToInt32(obj.statename), "INPUT");
+                objcon.dtInputParameter.Rows.Add("IN_ZONE_NAME", obj.zonename, "INPUT");
+                objcon.dtInputParameter.Rows.Add("IN_REMARKS", obj.remarks, "INPUT");
+                objcon.dtInputParameter.Rows.Add("IN_FLAG", obj.Flag, "INPUT");
+                objcon.dtInputParameter.Rows.Add("OUT_ID", responseCode, "OUTPUT");
+                objcon.ArrInputType[0] = OracleDbType.Int32;
+                objcon.ArrInputType[1] = OracleDbType.Int32;
+                objcon.ArrInputType[2] = OracleDbType.Int32;
+                objcon.ArrInputType[3] = OracleDbType.Varchar2;
+                objcon.ArrInputType[4] = OracleDbType.Varchar2;
+                objcon.ArrInputType[5] = OracleDbType.Int32;
+                objcon.ArrInputType[6] = OracleDbType.Int32;
+                string[] arr = objcon.Execute(objcon);
+                obj.responseCode = Convert.ToInt32(arr[0]);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            return obj;
+        }
+        /// <summary>
+        /// Created By Shubham
+        /// ON:-15/09/2023
+        /// This method will Fetch data from dataTable
+        /// </summary>
+        /// <returns></returns>
+        public List<Zone> getZoneDataTable()
+        {
+            try
+            {
+                Zone objZone = new Zone();
+                CustOledbConnection objcon = new CustOledbConnection("IIITS", "C:\\Users\\shubham.kumar\\source\\repos\\ZoneMasterProject\\ZoneMasterProject\\constring.json");
+                objcon.proc_name = "FETCHZONEDETAILS";
+                objcon.dtInputParameter.Rows.Add("PROC_OUTPUT", "", "OUTPUT");
+                objcon.ArrInputType[0] = OracleDbType.RefCursor;
+                DataTable dt = objcon.FetchDataTable(objcon);
+                if (dt.Rows.Count > 0)
+                {
+                    objZone.ZoneDataList = (from dr in dt.AsEnumerable()
+                                            select new Zone()
+                                            {
+                                                isactive = Convert.ToInt32(dr["IS_ACTIVE"]),
+                                                countryid = Convert.ToInt32(dr["COUNTRY_ID"]),
+                                                stateid = Convert.ToInt32(dr["STATE_ID"]),
+                                                statename = Convert.ToString(dr["STATE_NAME"]),
+                                                countryname = Convert.ToString(dr["COUNTRY_NAME"]),
+                                                zonename = Convert.ToString(dr["ZONE_NAME"]),
+                                                zoneid = Convert.ToInt32(dr["ZONE_ID"]),
+                                                remarks = Convert.ToString(dr["REMARKS"]),
+                                            }).ToList();
+                }
+                return objZone.ZoneDataList;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        /// <summary>
+        /// Created By Shubham
+        /// ON:-15/09/2023
+        /// This method will return Country List
+        /// </summary>
+        /// <returns></returns>
+        public List<SelectListItem> GetCountryList()
+        {
+            try
+            {
+                CustOledbConnection objcon = new CustOledbConnection("IIITS", "C:\\Users\\shubham.kumar\\source\\repos\\ZoneMasterProject\\ZoneMasterProject\\constring.json");
+                objcon.proc_name = "FETCH_COUNTRY_LIST";
+                objcon.dtInputParameter.Rows.Add("PROC_OUTPUT", "", "OUTPUT");
+                objcon.ArrInputType[0] = OracleDbType.RefCursor;
+                DataTable dtCountry = objcon.FetchDataTable(objcon);
+                lstCountry = GetListDetails(dtCountry);
+                return lstCountry;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// /// Created By Shubham on 18/09/2023
+        /// This Method return List of State Related To Country Id 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public List<SelectListItem> GetstateList(int id)
+        {
+            try
+            {
+                CustOledbConnection objcon = new CustOledbConnection("IIITS", "C:\\Users\\shubham.kumar\\source\\repos\\ZoneMasterProject\\ZoneMasterProject\\constring.json");
+                objcon.proc_name = "FETCH_state_DETAILS";
+                objcon.dtInputParameter.Rows.Add("COUNTRY_ID", id, "INPUT");
+                objcon.dtInputParameter.Rows.Add("PROC_OUTPUT", "", "OUTPUT");
+                objcon.dtInputParameter.Rows.Add("OUT_RESULT", responseCode, "OUTPUT");
+                objcon.ArrInputType[0] = OracleDbType.Int32;
+                objcon.ArrInputType[1] = OracleDbType.RefCursor;
+                objcon.ArrInputType[2] = OracleDbType.Int32;
+                DataTable dtstate = objcon.FetchDataTable(objcon);
+                lststate = GetListDetails(dtstate);
+                return lststate;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        /// <summary>
+        /// Created By Shubham on 18/09/2023
+        /// This Method Return State related To the Country Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public List<SelectListItem> GetStateById(int id)
+        {
+            try
+            {
+                CustOledbConnection objcon = new CustOledbConnection("IIITS", "C:\\Users\\shubham.kumar\\source\\repos\\ZoneMasterProject\\ZoneMasterProject\\constring.json");
+                objcon.proc_name = "FETCH_STATE_NAME";
+                objcon.dtInputParameter.Rows.Add("OUT_STATE_ID", id, "INPUT");
+                objcon.dtInputParameter.Rows.Add("PROC_OUTPUT", "", "OUTPUT");
+                objcon.dtInputParameter.Rows.Add("OUT_RESULT", responseCode, "OUTPUT");
+                objcon.ArrInputType[0] = OracleDbType.Int32;
+                objcon.ArrInputType[1] = OracleDbType.RefCursor;
+                objcon.ArrInputType[2] = OracleDbType.Int32;
+                DataTable dtstate = objcon.FetchDataTable(objcon);
+                statedropdownlist = GetStateName(dtstate);
+                return statedropdownlist;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        /// <summary>
+        /// Created By Shubham on 18/09/2023
+        /// This Method return Single Data of State Id and State Name list;
+        /// </summary>
+        /// <param name="dtstate"></param>
+        /// <returns></returns>
+        public static List<SelectListItem> GetStateName(DataTable dtstate)
+        {
+            try
+            {
+                List<SelectListItem> stateData = new List<SelectListItem>();
+                if (dtstate.Rows.Count > 0)
+                {
+                    foreach (DataRow dRow in dtstate.Rows)
+                    {
+                        stateData.Add(new SelectListItem { Text = Convert.ToString(dRow[1]), Value = Convert.ToString(dRow[0]) });
+                    }
+                }
+                return stateData;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+        /// <summary>
+        /// Created By Shubham on 18/09/2023
+        /// This Method return list of Data Table
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static List<SelectListItem> GetListDetails(DataTable dt, string str = "")
+        {
+            try
+            {
+                List<SelectListItem> countryData = new List<SelectListItem>();
+                if (str == "")
+                {
+                    countryData.Add(new SelectListItem { Text = Convert.ToString("select"), Value = Convert.ToString("0") });
+                }
+                if (dt.Rows.Count > 0)
+                {
+                    foreach (DataRow dRow in dt.Rows)
+                    {
+                        countryData.Add(new SelectListItem { Text = Convert.ToString(dRow[1]), Value = Convert.ToString(dRow[0]) });
+                    }
+                }
+                return countryData;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+        }
+    }
+}
