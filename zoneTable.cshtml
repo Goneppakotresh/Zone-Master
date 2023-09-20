@@ -1,0 +1,254 @@
+﻿
+
+@* @model ZoneMaster.Models.Zone
+@{
+    ViewData["Title"] = "zoneTable";
+}
+
+
+
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    @*     <input type="button" id="btnlink" value="Create" class="btn btn-outline-info" style="" /> 
+    <style>
+        .ui-datepicker {
+            z-index: 9999999 !important;
+        }
+
+        .modal-content {
+            width: 109%;
+        }
+
+        .modal-backdrop.show {
+            opacity: 0 !important;
+        }
+
+        table#grdWorkFlowView th {
+            background: linear-gradient(to bottom,#F8F8F8 0,#ECECEC 100%);
+        }
+
+        .chosen-container {
+            width: 100% !important;
+        }
+
+        td {
+            text-align: center !important;
+        }
+
+        .modal-backdrop {
+            position: relative !important;
+        }
+
+        .font-size-14 {
+            color: #64C5B1 !important;
+            font-size: 14px;
+            font-weight: 600 !important;
+        }
+
+        .container {
+            width: 1116px !important;
+        }
+
+        div#grdWorkFlowView_filter {
+            float: right;
+        }
+
+        .sweet-overlay {
+            z-index: 99999 !important;
+        }
+    </style>
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $(".close").click(function () {
+                $("#modalbox").modal("hide");
+            });
+            $("#country").change(function () 
+            {
+              
+                var id = $("#country").val();
+                
+                $.ajax({
+                    type: "POST",
+                    url: "../Zone/getstate",
+                    data: { id: id },
+                    success: function (data) 
+                    {
+                        debugger;
+                        alert(1);
+                         $("#State").html(''); 
+
+                       
+                        var s = '';
+                        var len = data.length;
+                        for (var i = 0; i < len; i++) {
+                            s += "<option value='" + data[i]["value"] + "'>" + data[i]["text"] + "</option>";
+                        }
+                         $('#State').html(s).trigger("chosen:updated");
+                    },
+                    error: function (xhr, status, error) {
+                        alert("While your processing getting error...!!");
+                    }
+                    
+                    
+                });
+            });
+
+
+
+
+            $("#btnNew").click(function () {
+                $("#modalbox").modal("show");
+                $('#State').val("");
+                $('#country').val("");
+                $('#txtRemarks').val("");
+                $('#txtZone').val("");
+                $("#country").prop("disabled", false);
+            });
+            $('#grdWorkFlowView').DataTable({
+                "ajax": {
+                    "url": "/Zone/GetZoneDetail",
+                    "type": "POST",
+                    "datatype": "json",
+                },
+                "columns": [
+                    { "data": null, "defaultContent": "", "orderable": false }, // Serial Number column
+                    { "data": "country" },
+                    { "data": "zoneid", "autoWidth": true, "visible": false },
+                    { "data": "state", "autoWidth": true },
+                    { "data": "zonename", "autoWidth": true },
+                    { "data": "remarks", "autoWidth": true },
+                    {
+                        "data": "zoneid", "autoWidth": true, "sortable": false, "render": function (data, type, row) {
+                            return '<a style="color: red;" href="javascript:viewBtn(\'' + row.stateId + '\',\'' + row.remarks + '\',\'' + row.zonename + '\',\'' + row.countryid + '\',\'' + row.zoneid + '\')" title="Edit"><i class="fa fa-edit" style="font-size: 24px"></i></a>';
+
+                        }
+                    },
+                ],
+                "columnDefs": [
+                    {
+                        "targets": 0, // Target the first column (Serial Number)
+                        "data": null,
+                        "render": function (data, type, row, meta) {
+                            // Use meta.row to get the current row index and add 1 to start from 1
+                            return meta.row + 1;
+                        }
+                    }
+                ]
+            });
+        });
+        function viewBtn(stateId, remarks, zonename, countryid, zoneid) {
+
+            debugger;
+            var zoneid = zoneid;
+            var state = state;
+            var zonename = zonename;
+            $("#modalbox").modal("show");
+            $('#State').val(stateId);
+            $('#country').val(countryid);
+            $('#txtRemarks').val(remarks);
+            $('#txtZone').val(zonename);
+            if (zoneid !== "0") {
+                
+                $("#country").prop("disabled", true);
+            }
+
+        }
+
+    </script>
+
+</head>
+
+<body>
+    @using (Html.BeginForm())
+    {
+        <input type="button" id="btnNew" value="New" class="btn btn-primary" />
+        <div class="card">
+            <div class="card-body">
+                <div class="container-fluid">
+                    <div class="table-responsive">
+                        <div class="col-md-12">
+                            <table id="grdWorkFlowView" cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; width: 100% !important" class="table dispaly">
+                                <thead>
+                                    <tr style="text-align: center;">
+                                        <th style="text-align:center">SerialNo</th>
+                                        <th style="text-align:center">Country</th>
+                                        <th style="text-align: center">zoneid</th>
+
+                                        <th style="text-align: center">stateName</th>
+                                        <th style="text-align: center">zonename</th>
+                                        <th style="text-align:center">Remarks</th>
+                                        <th style="text-align:center">Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for displaying license details -->
+        <div id="modalbox" class="modal fade" id="licenseModal" tabindex="-1" role="dialog" aria-labelledby="licenseModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    @Html.HiddenFor(m => m.countryid, new { @class = "form-control", @id = "hdnContryId" })
+                    @Html.HiddenFor(m => m.zoneid, new { @class = "form-control", @id = "hdnZoneId" })
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.countryname, htmlAttributes: new { @class = "control-label col-md-2" })
+
+                        <div class="col-md-10">
+                            @Html.DropDownListFor(m => m.countryname, Model.lstCountry, new { @class = "form-control chosen-select", id = "country" , @required = "required"})
+                            @Html.ValidationMessageFor(model => model.countryname, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.statename, htmlAttributes: new { @class = "control-label col-md-2" })
+
+                        <div class="col-md-10">
+                            @Html.DropDownListFor(m => m.statename, Model.lststate,new { @class = "dropdown form-control", id = "State" })
+                            @Html.ValidationMessageFor(model => model.statename, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.zonename, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            @Html.TextBoxFor(model => model.zonename, new { @class = "form-control clsZone", id="txtZone"} )
+                            @Html.ValidationMessageFor(model => model.zonename, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.remarks,  new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.remarks, new { htmlAttributes = new { @class = "form-control",id="txtRemarks" } })
+                            @Html.ValidationMessageFor(model => model.remarks, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="btnspart">
+                        <div class="col-md-offset-2 col-md-10">
+                            <input type="submit" id="btnsubmit" value="Submit" class="btn btn-primary" />
+                            <input type="reset" id="btnreset" value="Reset" class="btn btn-danger" />
+                            <input type="button" id="btnback" value="Back" class="btn btn-dark" />
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</body>
+
+
+</html> *@
